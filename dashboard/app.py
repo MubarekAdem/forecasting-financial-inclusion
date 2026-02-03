@@ -62,12 +62,12 @@ def load_data():
     """Load all necessary datasets"""
     try:
         # Load enriched data
-        df = pd.read_csv('../data/ethiopia_fi_unified_data_enriched.csv')
+        df = pd.read_csv('data/ethiopia_fi_unified_data_enriched.csv')
         df['observation_date'] = pd.to_datetime(df['observation_date'], errors='coerce')
         
         # Load forecast data (if available)
         try:
-            forecast_df = pd.read_csv('../data/account_ownership_forecast.csv')
+            forecast_df = pd.read_csv('data/account_ownership_forecast.csv')
         except:
             # Create synthetic forecast data for demo
             forecast_df = pd.DataFrame({
@@ -81,7 +81,7 @@ def load_data():
         
         # Load scenario data (if available)
         try:
-            scenario_df = pd.read_csv('../data/forecast_scenarios.csv')
+            scenario_df = pd.read_csv('data/forecast_scenarios.csv')
         except:
             # Create synthetic scenario data
             scenario_df = pd.DataFrame({
@@ -155,15 +155,24 @@ col1, col2, col3, col4 = st.columns(4)
 # Get latest account ownership
 acc_ownership = observations[observations['indicator_code'] == 'ACC_OWNERSHIP']
 if len(acc_ownership) > 0:
-    latest_acc = acc_ownership.sort_values('observation_date').iloc[-1]
-    latest_value = latest_acc['value_numeric']
-    latest_date = latest_acc['observation_date'].strftime('%Y-%m')
+    acc_ownership_sorted = acc_ownership.sort_values('observation_date')
+    # Filter out NaT dates
+    acc_ownership_sorted = acc_ownership_sorted[acc_ownership_sorted['observation_date'].notna()]
     
-    # Calculate growth from previous
-    if len(acc_ownership) > 1:
-        prev_value = acc_ownership.sort_values('observation_date').iloc[-2]['value_numeric']
-        growth = latest_value - prev_value
+    if len(acc_ownership_sorted) > 0:
+        latest_acc = acc_ownership_sorted.iloc[-1]
+        latest_value = latest_acc['value_numeric']
+        latest_date = latest_acc['observation_date'].strftime('%Y-%m')
+        
+        # Calculate growth from previous
+        if len(acc_ownership_sorted) > 1:
+            prev_value = acc_ownership_sorted.iloc[-2]['value_numeric']
+            growth = latest_value - prev_value
+        else:
+            growth = 0
     else:
+        latest_value = 48.5
+        latest_date = "2024-06"
         growth = 0
 else:
     latest_value = 48.5
@@ -254,6 +263,8 @@ st.markdown('<div class="sub-header">📊 Historical Trends</div>', unsafe_allow
 st.markdown("#### 📈 Account Ownership Growth Trajectory")
 
 acc_ownership_sorted = acc_ownership.sort_values('observation_date')
+# Filter out NaT dates
+acc_ownership_sorted = acc_ownership_sorted[acc_ownership_sorted['observation_date'].notna()]
 
 fig_trend = go.Figure()
 
@@ -268,15 +279,18 @@ fig_trend.add_trace(go.Scatter(
 ))
 
 # Add event markers
-for idx, event in events.iterrows():
-    fig_trend.add_vline(
-        x=event['observation_date'], 
-        line_dash="dash", 
-        line_color="red", 
-        opacity=0.5,
-        annotation_text=event['indicator'][:20],
-        annotation_position="top"
-    )
+events_with_dates = events[events['observation_date'].notna()].copy()
+for idx, event in events_with_dates.iterrows():
+    event_date = pd.to_datetime(event['observation_date'])
+    if pd.notna(event_date):
+        fig_trend.add_vline(
+            x=event_date.timestamp() * 1000,  # Convert to milliseconds for Plotly
+            line_dash="dash", 
+            line_color="red", 
+            opacity=0.5,
+            annotation_text=event['indicator'][:20],
+            annotation_position="top"
+        )
 
 fig_trend.update_layout(
     title="Account Ownership Rate Over Time",
