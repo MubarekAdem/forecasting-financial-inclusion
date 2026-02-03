@@ -265,22 +265,4 @@ docs: "documentation update"
 - **Version Control**: Git, GitHub
 - **CI/CD**: GitHub Actions
 
-## 👥 Contributors
 
-- Mohammed Sultan (@msultan001)
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🙋 Support
-
-For questions or issues:
-1. Check the `INTERIM_REPORT.md` for detailed methodology
-2. Review notebook outputs for analysis details
-3. Open an issue on GitHub
-
----
-
-**Last Updated**: February 2026  
-**Status**: Complete (Tasks 1-5)
