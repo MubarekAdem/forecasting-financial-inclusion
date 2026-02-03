@@ -4,3 +4,8 @@ matplotlib
 seaborn
 jupyter
 numpy
+streamlit
+plotly
+statsmodels
+scikit-learn
+prophet
