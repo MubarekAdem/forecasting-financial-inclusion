@@ -9,3 +9,6 @@ plotly
 statsmodels
 scikit-learn
 prophet
+pytest
+pytest-cov
+flake8
